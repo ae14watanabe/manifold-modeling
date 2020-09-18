@@ -75,10 +75,10 @@ def create_grids(n_dim,
         # calculate step
         index_shortest_dim = np.argmin(length_dims)
         grid1d_min, step = np.linspace(range_dims[index_shortest_dim, 0],
-                              range_dims[index_shortest_dim, 1],
-                              n_grids_dims[index_shortest_dim],
-                              endpoint=include_min_max,
-                              retstep=True)
+                                       range_dims[index_shortest_dim, 1],
+                                       n_grids_dims[index_shortest_dim],
+                                       endpoint=include_min_max,
+                                       retstep=True)
         for i, (length, range_) in enumerate(zip(length_dims, range_dims)):
             if i == index_shortest_dim:
                 list_grids.append(grid1d_min)
