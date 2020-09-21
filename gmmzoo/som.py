@@ -32,6 +32,7 @@ class SOM(BaseGMM):
         # Set about scheduling sigma
         self.n_epoch = n_epoch
         if schedule_sigma == 'auto':
+            raise ValueError('Not support schedule_sigma={}'.format(schedule_sigma))
         elif isinstance(schedule_sigma, dict):
             self.sigma_max = schedule_sigma['max']
             self.sigma_min = schedule_sigma['min']
