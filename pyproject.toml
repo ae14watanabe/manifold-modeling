@@ -11,6 +11,7 @@ matplotlib = "^3.3.2"
 tqdm = "^4.49.0"
 torch = "^1.6.0"
 sklearn = "^0.0"
+dash = "^1.16.1"
 
 [tool.poetry.dev-dependencies]
 
