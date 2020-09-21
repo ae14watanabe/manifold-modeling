@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from manifoldmodeling.utils import create_grids
+from gmmzoo.utils import create_grids
 
 
 class TestUtils(unittest.TestCase):
