@@ -22,7 +22,7 @@ class LatentSpace(Space):
 class ObservedSpace(Space):
     pass
 
-class BaseManifoldModeling(object):
+class BaseGMM(object):
     def __init__(self, X: torch.Tensor, n_dim_latent: int, init='auto',
                  n_grids=10, step_equal=True):
         # grids_x = self._create_grids_like(n_dim=X.shape[0], n_grids=n_grids, include_min_max=True, ste)
