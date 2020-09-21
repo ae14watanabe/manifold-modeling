@@ -7,15 +7,15 @@ def _main():
     X = iris.data
 
     n_dim_latent=2
-    n_grids=10
+    n_grids = 20
     n_epoch = 10
     init='pca'
     shape_latent_space='unit_hypercube'
-    sigma_sheculing = {'max':0.5, 'min': 0.1}
+    schedule_sigma = {'max': 0.5, 'min': 0.1}
 
     som = SOM(X=torch.tensor(X),n_dim_latent=n_dim_latent,init=init,
               shape_latent_space=shape_latent_space,n_grids=n_grids,n_epoch=n_epoch,
-              schedule_sigma=sigma_sheculing)
+              schedule_sigma=schedule_sigma)
 
     som.fit()
     fig = plt.figure()
@@ -23,3 +23,4 @@ def _main():
     ax.scatter(som.ls.data[:, 0], som.ls.data[:, 1])
     plt.show()
 if __name__ == '__main__':
+    _main()
