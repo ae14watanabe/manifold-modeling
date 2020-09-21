@@ -60,6 +60,7 @@ class SOM(BaseGMM):
             g = torch.sum(h, dim=1)[:, None]
             r = h / g
             y = torch.mm(r, x)
+            self.os.grids = y.clone()
             # Estimate latent variables
             dist = torch.cdist(x, y)
             z = zeta[dist.argmin(dim=1)]
