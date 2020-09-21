@@ -7,15 +7,15 @@ class SOM(BaseGMM):
                  n_epoch=20, schedule_sigma='auto'):
         self.os = ObservedSpace(data=X, grids=None)
         # Set about init value and grids
-        if shape_latent_space not in ['pca', 'random']:
+        if init not in ['pca', 'random']:
+            raise ValueError('invalid init={}'.format(init))
+        if shape_latent_space not in ['unit_hypercube', 'adjust_data']:
             raise ValueError('invalid shape_latent_space={}'.format(shape_latent_space))
-        if init not in ['unit_hypercube', 'adjust_data']:
-            raise ValueError('invalid init={}'.format())
         init_z = self._initialize_z(n_dim=n_dim_latent, init=init)
         if shape_latent_space == 'unit_hypercube':
             from sklearn.preprocessing import MinMaxScaler
             mmscalar = MinMaxScaler()
-            init_z = torch.tensor(mmscalar.fit_transform(init_z.detach.numpy()))
+            init_z = torch.tensor(mmscalar.fit_transform(init_z.detach().numpy()))
         elif shape_latent_space == 'adjust_data':
             if init == 'random':
                 raise ValueError('Not support init={}, shape_latent_space={}'.format(init,shape_latent_space))
@@ -63,3 +63,4 @@ class SOM(BaseGMM):
             # Estimate latent variables
             dist = torch.cdist(x, y)
             z = zeta[dist.argmin(dim=1)]
+            self.ls.data = z.clone()

@@ -31,9 +31,20 @@ class BaseGMM(object):
         self.ls = LatentSpace(data=init_z, grids=grids_z)
 
     def _create_grids_like(self, data, n_grids, include_min_max, equal_step)->torch.Tensor:
-        range_grids = torch.cat([data.min(dim=0)[:,None],data.max(dim=0)[:,None]], dim=1)
-        return create_grids(n_dim=data.shape[1],n_grids=n_grids,range_=range_grids,
-                            include_min_max=include_min_max, equal_step=equal_step)
+        range_grids = torch.cat(
+            [
+                data.min(dim=0).values[:, None],
+                data.max(dim=0).values[:, None]
+            ],
+            dim=1
+        )
+        range_grids = range_grids.detach().numpy().copy()
+        return torch.tensor(
+            create_grids(
+                n_dim=data.shape[1], n_grids=n_grids, range_=range_grids,
+                include_min_max=include_min_max, equal_step=equal_step
+            )
+        )
 
     def _initialize_z(self, n_dim, init)->torch.Tensor:
         if isinstance(init, (torch.Tensor, np.ndarray)):
