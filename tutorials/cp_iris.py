@@ -49,7 +49,7 @@ def _main():
     )
     fig_ls.add_trace(go.Scatter(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1], mode='markers',
                                 visible=True, marker_symbol='square', marker_size=10,
-                                name='grid', opacity=0.5))
+                                name='grid', opacity=0.0))
     fig_ls.add_trace(go.Scatter(x=som.ls.data[:, 0], y=som.ls.data[:, 1],
                                 mode='markers', name='latent variable'))
     fig_bar = go.Figure(
@@ -81,9 +81,10 @@ def _main():
             style={'display': 'inline-block', 'width': '49%'}
         )
     ])
+    # if hoverData
     @app.callback(
         Output(component_id='right-graph', component_property='figure'),
-        [Input(component_id='left-graph', component_property='hoverData')]
+        [Input(component_id='left-graph', component_property='clickData')]
     )
     def update_bar(hoverData):
         print(hoverData)
@@ -94,6 +95,9 @@ def _main():
             elif hoverData['points'][0]['curveNumber'] == 0:
                 fig_bar.update_traces(y=som.os.grids[index], marker=dict(color='#1f77b4'))
         return fig_bar
+    # @app.callback(
+    #     Output(component_id)
+    # )
 
     app.run_server(debug=True)
 if __name__ == '__main__':
