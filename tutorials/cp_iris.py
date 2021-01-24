@@ -9,19 +9,20 @@ import plotly.graph_objects as go
 import numpy as np
 from dash.dependencies import Input, Output
 
+
 def _main():
     iris = load_iris()
     X = iris.data
 
-    n_dim_latent=2
+    n_dim_latent = 2
     n_grids = 20
     n_epoch = 10
-    init='pca'
-    shape_latent_space='unit_hypercube'
+    init = 'pca'
+    shape_latent_space = 'unit_hypercube'
     schedule_sigma = {'max': 0.5, 'min': 0.1}
 
-    som = SOM(X=torch.tensor(X),n_dim_latent=n_dim_latent,init=init,
-              shape_latent_space=shape_latent_space,n_grids=n_grids,n_epoch=n_epoch,
+    som = SOM(X=torch.tensor(X), n_dim_latent=n_dim_latent, init=init,
+              shape_latent_space=shape_latent_space, n_grids=n_grids, n_epoch=n_epoch,
               schedule_sigma=schedule_sigma)
 
     som.fit()
@@ -47,9 +48,14 @@ def _main():
             # yaxis={'range': [som.ls.data[:, 1].min(), som.ls.data[:, 1].max()]}
         )
     )
-    fig_ls.add_trace(go.Scatter(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1], mode='markers',
-                                visible=True, marker_symbol='square', marker_size=10,
-                                name='grid', opacity=0.0))
+    fig_ls.add_trace(go.Contour(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1],
+                                z=som.os.grids[:, 0], colorscale='viridis',
+                                line_smoothing=0.85,
+                                contours_coloring='heatmap', name='cp')
+                     )
+    # fig_ls.add_trace(go.Scatter(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1], mode='markers',
+    #                             visible=True, marker_symbol='square', marker_size=10,
+    #                             name='grid', opacity=0.5))
     fig_ls.add_trace(go.Scatter(x=som.ls.data[:, 0], y=som.ls.data[:, 1],
                                 mode='markers', name='latent variable'))
     fig_bar = go.Figure(
@@ -63,14 +69,23 @@ def _main():
         # `dash_html_components`が提供するクラスは`childlen`属性を有している。
         # `childlen`属性を慣例的に最初の属性にしている。
         html.H1(children='Visualization iris dataset by SOM'),
-        #html.Div(children='by component plance of SOM.'),
+        # html.Div(children='by component plance of SOM.'),
         # `dash_core_components`が`plotly`に従う機能を提供する。
         # HTMLではSVG要素として表現される。
         html.Div(
-            [dcc.Graph(
-                id='left-graph',
-                figure=fig_ls
-            )],
+            [
+                dcc.Graph(
+                    id='left-graph',
+                    figure=fig_ls
+                ),
+                html.P('showd feature'),
+                dcc.Dropdown(
+                    id='feature_dropdown',
+                    options=[{"value": i, "label": x}
+                             for i,x in enumerate(iris.feature_names)],
+                    value=0
+                )
+            ],
             style={'display': 'inline-block', 'width': '49%'}
         ),
         html.Div(
@@ -81,24 +96,47 @@ def _main():
             style={'display': 'inline-block', 'width': '49%'}
         )
     ])
-    # if hoverData
+
+    # Define callback function when data is clicked
     @app.callback(
         Output(component_id='right-graph', component_property='figure'),
-        [Input(component_id='left-graph', component_property='clickData')]
+        Input(component_id='left-graph', component_property='clickData')
     )
-    def update_bar(hoverData):
-        print(hoverData)
-        if hoverData is not None:
-            index = hoverData['points'][0]['pointIndex']
-            if hoverData['points'][0]['curveNumber'] == 1:
+    def update_bar(clickData):
+        print(clickData)
+        if clickData is not None:
+            index = clickData['points'][0]['pointIndex']
+            print('index={}'.format(index))
+            if clickData['points'][0]['curveNumber'] == 1:
+                print('clicked latent variable')
+                # if latent variable is clicked
                 fig_bar.update_traces(y=som.os.data[index], marker=dict(color='#ff7f0e'))
-            elif hoverData['points'][0]['curveNumber'] == 0:
+            elif clickData['points'][0]['curveNumber'] == 0:
+                print('clicked map')
+                # if contour is clicked
                 fig_bar.update_traces(y=som.os.grids[index], marker=dict(color='#1f77b4'))
-        return fig_bar
-    # @app.callback(
-    #     Output(component_id)
-    # )
+            # elif clickData['points'][0]['curveNumber'] == 0:
+            #     print('clicked heatmap')
+            return fig_bar
+        else:
+            return dash.no_update
+
+    @app.callback(
+        Output(component_id='left-graph', component_property='figure'),
+        Input(component_id='feature_dropdown', component_property='value')
+    )
+    def update_cp(index):
+        # print(clickData)
+        if index is not None:
+            print(index)
+            fig_ls.update_traces(z=som.os.grids[:, index], selector=dict(type='contour'))
+            return fig_ls
+        else:
+            return dash.no_update
+
 
     app.run_server(debug=True)
+
+
 if __name__ == '__main__':
     _main()
