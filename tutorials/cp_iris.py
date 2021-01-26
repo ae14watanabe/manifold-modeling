@@ -33,6 +33,9 @@ def _main():
     # plt.show()
 
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+    color_sequence = np.array(px.colors.qualitative.Set2)
+    width_fig = None
+    height_fig = None
 
     # ファイル名をアプリ名として起動。その際に外部CSSを指定できる。
     app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -45,41 +48,52 @@ def _main():
     fig_ls = go.Figure(
         layout=go.Layout(
             title=go.layout.Title(text='Latent space'),
-            # xaxis={'range': [som.ls.data[:, 0].min(), som.ls.data[:, 0].max()]},
-            # yaxis={'range': [som.ls.data[:, 1].min(), som.ls.data[:, 1].max()]}
+            xaxis={'range': [som.ls.data[:, 0].min()-0.05, som.ls.data[:, 0].max()+0.05]
+                   },
+            yaxis={
+                'range': [som.ls.data[:, 1].min()-0.05, som.ls.data[:, 1].max()+0.05],
+                'scaleanchor': 'x',
+                'scaleratio': 1.0
+            },
+            width=width_fig,
+            height=width_fig,
             showlegend=False
         )
     )
+    # draw contour of mapping
     fig_ls.add_trace(go.Contour(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1],
-                                z=som.os.grids[:, 0], colorscale='viridis',
+                                z=som.os.grids[:, 0], colorscale='GnBu_r',
                                 line_smoothing=0.85,
                                 contours_coloring='heatmap', name='cp'
                                 )
                      )
-    index_cp = 1
+    # draw invisible grids to click
     fig_ls.add_trace(
         go.Scatter(x=som.ls.grids[:, 0], y=som.ls.grids[:, 1], mode='markers',
                    visible=True,
                    marker=dict(symbol='square', size=10, opacity=0.0,color='black'),
                    name='latent space')
     )
+    index_grids = 1
 
+    # draw latent variables
     fig_ls.add_trace(
         go.Scatter(
             x=som.ls.data[:, 0], y=som.ls.data[:, 1],
             mode='markers', name='latent variable',
             marker=dict(
                 size=10,
-                color=np.array(px.colors.qualitative.Plotly)[iris.target],
+                color=color_sequence[iris.target],
                 line=dict(
                     width=2,
-                    color="grey"
+                    color="dimgrey"
                 )
             ),
             text=iris.target_names[iris.target]
         )
     )
     index_z = 2
+    # draw click point initialized by visible=False
     fig_ls.add_trace(
         go.Scatter(
             x=np.array(0.0), y=np.array(0.0),
@@ -87,7 +101,7 @@ def _main():
             marker=dict(
                 size=10,
                 symbol='x',
-                color='black',
+                color=color_sequence[len(np.unique(iris.target))],
                 line=dict(
                     width=1,
                     color="white"
@@ -99,10 +113,16 @@ def _main():
     fig_bar = go.Figure(
         layout=go.Layout(
             title=go.layout.Title(text='Feature bars'),
-            yaxis={'range': [0, X.max()]}
+            yaxis={'range': [0, X.max()]},
+            width=width_fig,
+            height=height_fig
         )
     )
-    fig_bar.add_trace(go.Bar(x=iris.feature_names, y=np.zeros(som.os.data.shape[1])))
+    fig_bar.add_trace(
+        go.Bar(x=iris.feature_names, y=np.zeros(som.os.data.shape[1]),
+               marker=dict(color=color_sequence[len(np.unique(iris.target))])
+               )
+    )
 
     config = {'displayModeBar': False}
     app.layout = html.Div(children=[
@@ -119,7 +139,7 @@ def _main():
                     figure=fig_ls,
                     config=config
                 ),
-                html.P('showd feature'),
+                html.P('Feature as contour'),
                 dcc.Dropdown(
                     id='feature_dropdown',
                     options=[{"value": i, "label": x}
@@ -152,12 +172,12 @@ def _main():
             if clickData['points'][0]['curveNumber'] == index_z:
                 print('clicked latent variable')
                 # if latent variable is clicked
-                fig_bar.update_traces(y=som.os.data[index], marker=dict(color='#ff7f0e'))
+                fig_bar.update_traces(y=som.os.data[index])
                 fig_ls.update_traces(visible=False, selector=dict(name='clicked_point'))
-            elif clickData['points'][0]['curveNumber'] == index_cp:
+            elif clickData['points'][0]['curveNumber'] == index_grids:
                 print('clicked map')
                 # if contour is clicked
-                fig_bar.update_traces(y=som.os.grids[index], marker=dict(color='#1f77b4'))
+                fig_bar.update_traces(y=som.os.grids[index])
             # elif clickData['points'][0]['curveNumber'] == 0:
             #     print('clicked heatmap')
             return fig_bar
@@ -183,7 +203,7 @@ def _main():
                 return fig_ls
             elif clicked_id_text == 'left-graph':
                 index_clicked = clickData['points'][0]['pointIndex']
-                if clickData['points'][0]['curveNumber'] == index_cp:
+                if clickData['points'][0]['curveNumber'] == index_grids:
                     # if contour is clicked
                     print('clicked map')
                     fig_ls.update_traces(
