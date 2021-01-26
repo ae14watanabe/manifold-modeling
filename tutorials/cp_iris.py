@@ -1,7 +1,7 @@
+import os
 from gmmzoo.som import SOM
 from sklearn.datasets import load_iris
 import torch
-import matplotlib.pyplot as plt
 import plotly.express as px
 import dash
 import dash_core_components as dcc
@@ -11,7 +11,14 @@ import numpy as np
 from dash.dependencies import Input, Output
 
 
-def _main():
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# ファイル名をアプリ名として起動。その際に外部CSSを指定できる。
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+
+
+
+def _main(app):
     iris = load_iris()
     X = iris.data
 
@@ -32,13 +39,10 @@ def _main():
     # ax.scatter(som.ls.data[:, 0], som.ls.data[:, 1])
     # plt.show()
 
-    external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     color_sequence = np.array(px.colors.qualitative.Set2)
     width_fig = None
     height_fig = None
 
-    # ファイル名をアプリ名として起動。その際に外部CSSを指定できる。
-    app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
     # この`layout`にアプリの外観部分を指定していく。
     # `dash_html_components`がHTMLタグを提供し、React.jsライブラリを使って実際の要素が生成される。
@@ -236,5 +240,4 @@ def _main():
     app.run_server(debug=True)
 
 
-if __name__ == '__main__':
-    _main()
+_main(app)
