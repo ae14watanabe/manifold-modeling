@@ -7,7 +7,6 @@ authors = ["Ryuji Watanabe <watanabe.ryuji717@mail.kyutech.jp>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 numpy = "^1.19.2"
-matplotlib = "^3.3.2"
 tqdm = "^4.49.0"
 torch = "^1.6.0"
 sklearn = "^0.0"
