@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def expand_sequence(sequence, n_dimension):
     array = np.array(sequence)
     if array.ndim == 0:
@@ -24,7 +23,7 @@ def create_grids(n_dim,
     # about range_
     if isinstance(range_, (list, tuple)):
         range_dims = expand_sequence(range_, n_dim)
-    elif isinstance(range_, np.ndarray):
+    elif isinstance(range_, (np.ndarray)):
         if range_.ndim == 1:
             range_dims = expand_sequence(range_, n_dim)
         elif range_.ndim == 2:
@@ -43,6 +42,7 @@ def create_grids(n_dim,
         is_hypercube = True
     else:
         is_hypercube = False
+        raise Warning('If not hypercube, no debugged yet')
 
     # about_n_grids
     if isinstance(n_grids, int):
@@ -71,24 +71,7 @@ def create_grids(n_dim,
         raise ValueError('invalid n_grids={}'.format(n_grids))
 
     list_grids = []
-    if equal_step:
-        # calculate step
-        index_shortest_dim = np.argmin(length_dims)
-        grid1d_min, step = np.linspace(range_dims[index_shortest_dim, 0],
-                                       range_dims[index_shortest_dim, 1],
-                                       n_grids_dims[index_shortest_dim],
-                                       endpoint=include_min_max,
-                                       retstep=True)
-        for i, (length, range_) in enumerate(zip(length_dims, range_dims)):
-            if i == index_shortest_dim:
-                list_grids.append(grid1d_min)
-            else:
-                start = (step / 2.0) + range_[0]
-                n_step = int(length / step)
-                grid1d = np.arange(n_step) * step + start
-                list_grids.append(grid1d)
-    else:
-        list_steps = []
+    if is_hypercube:
         for n_grids, range_ in zip(n_grids_dims, range_dims):
             grid1d, step = np.linspace(range_[0], range_[1], n_grids,
                                        endpoint=include_min_max, retstep=True)
@@ -97,7 +80,34 @@ def create_grids(n_dim,
             else:
                 grid1d += step / 2.0
             list_grids.append(grid1d)
-            list_steps.append(step)
+    else:
+        if equal_step:
+            # calculate step
+            index_shortest_dim = np.argmin(length_dims)
+            grid1d_min, step = np.linspace(range_dims[index_shortest_dim, 0],
+                                           range_dims[index_shortest_dim, 1],
+                                           n_grids_dims[index_shortest_dim],
+                                           endpoint=include_min_max,
+                                           retstep=True)
+            for i, (length, range_) in enumerate(zip(length_dims, range_dims)):
+                if i == index_shortest_dim:
+                    list_grids.append(grid1d_min)
+                else:
+                    start = (step / 2.0) + range_[0]
+                    n_step = int(length / step)
+                    grid1d = np.arange(n_step) * step + start
+                    list_grids.append(grid1d)
+        else:
+            list_steps = []
+            for n_grids, range_ in zip(n_grids_dims, range_dims):
+                grid1d, step = np.linspace(range_[0], range_[1], n_grids,
+                                           endpoint=include_min_max, retstep=True)
+                if include_min_max:
+                    pass
+                else:
+                    grid1d += step / 2.0
+                list_grids.append(grid1d)
+                list_steps.append(step)
     list_grids = np.meshgrid(*list_grids, indexing='ij')
     grids = np.stack(list_grids, axis=-1)
     grids = grids.reshape(-1, grids.shape[-1])
